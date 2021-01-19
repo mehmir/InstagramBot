@@ -9,6 +9,7 @@ app = flask.Flask(__name__)
 @app.route('/instauser/verify', methods=['GET'])
 def verify_user():
     insta_user = flask.request.args.get('user')
+
     BotService.check_update_login(insta_user)
     return "<h1>"+insta_user+"</h1><p>login checked.</p>"
 
