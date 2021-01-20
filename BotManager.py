@@ -404,6 +404,12 @@ class BotManager:
                 proxy_list.append(proxy)
         repository.add_proxy(proxy_list)
 
+    def get_proxy_stat(self):
+        results = requests.get("https://proxy.webshare.io/api/proxy/stats/",
+                               headers={"Authorization": "Token ba7861bcafcfb854c7717a500fccd0144ddcb0a8"}).json()
+        a=1
+
+
 
 if __name__ == '__main__':
     import sys
@@ -420,5 +426,6 @@ if __name__ == '__main__':
 
     if not error:
         manager = BotManager(wp, hide_browser)
+        manager.fetch_proxies()
         # manager.fetch_proxies()
         manager.start()
