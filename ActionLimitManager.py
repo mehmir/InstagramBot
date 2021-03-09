@@ -34,11 +34,11 @@ class ActionLimitManager:
         return hour, day, yesterday
 
     def set_limits(self, setting):
-        self.limits[Actions.Follow] = setting.MaxFollowsPerHour, setting.MaxCommentPerDay
+        self.limits[Actions.Follow] = setting.MaxFollowsPerHour, setting.MaxFollowsPerDay
         self.limits[Actions.UnFollow] = setting.MaxUnfollowsPerHour, setting.MaxUnfollowsPerDay
         self.limits[Actions.LikeComment] = setting.MaxLikeCommentsPerHour, setting.MaxLikeCommentsPerDay
         self.limits[Actions.LikePost] = setting.MaxLikePostsPerHour, setting.MaxLikePostsPerDay
-        self.limits[Actions.CommentPost] = setting.MaxCommentPerHour, setting.MaxLikeCommentsPerDay
+        self.limits[Actions.CommentPost] = setting.MaxCommentPerHour, setting.MaxCommentPerDay
         self.limits[Actions.GetFollowers] = 1, 1
 
 
