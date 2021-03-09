@@ -198,7 +198,7 @@ class BotManager:
                 run_count = self.bot_actions.Comment.run_count()
                 print(BotManager.time_now_str(), 'comment count:', run_count)
                 for i in range(run_count):
-                    if self.limit_manager.can_do_action(Actions.LikeComment):
+                    if self.limit_manager.can_do_action(Actions.LikeComment) or self.limit_manager.can_do_action(Actions.CommentPost):
                         user_comments, error = self.bot_actions.Comment.next()
                         user_count = 0
                         like_count = 0
