@@ -10,6 +10,8 @@ from selenium.webdriver.chrome.options import Options as ChOptions
 from selenium.webdriver.firefox.options import Options as FiOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.utils import File as UFile
+import webdriver_manager
 import random
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -183,6 +185,7 @@ class InstagramBot:
                 wdm_logger.log(f"Get LATEST driver version for {self.browser_version}")
                 resp = ''
                 try:
+
                     resp = requests.get(f"{self._latest_release_url}_{self.browser_version}", proxies=wire_options.get('proxy', None))
                 except Exception as e:
                     print(e)
@@ -192,7 +195,15 @@ class InstagramBot:
                     raise ValueError(resp.json())
                 return resp.text.rstrip()
 
+            def download_via_proxy(url: str) -> UFile:
+                wdm_logger.log(f"Trying to download new driver from {url}")
+                response = requests.get(url, stream=True)
+                webdriver_manager.utils.validate_response(response)
+                return UFile(response)
+
             ChromeDriver.get_latest_release_version = get_latest_release_version_with_proxy
+            global webdriver_manager
+            webdriver_manager.utils.download_file = download_via_proxy
             self.webdriver = wire_webdriver.Chrome(executable_path=ChromeDriverManager(cache_valid_range=30).install(), options=options, seleniumwire_options=wire_options)
         elif browser == Browser.Firefox:
             driver_path = os.getcwd() + config.firefox_driver_path
@@ -533,6 +544,7 @@ class InstagramBot:
 
     def open_post(self, post):
         try:
+            self.close_post()
             post.element.click()
             time.sleep(20)
             return True
@@ -570,13 +582,15 @@ class InstagramBot:
         follow_count = 0
         followed_usernames = []
         try:
-            spans = self.webdriver.find_elements_by_css_selector('div>button>span')
+            like_buttons = self.webdriver.find_elements_by_css_selector('a[href*="liked_by"]')
             like_button = None
-            for spn in spans:
-                button = spn.find_element_by_xpath('..')
-                div = button.find_element_by_xpath('..')
-                if 'like' in div.text.lower():
-                    like_button = button
+            if like_buttons:
+                like_button = like_buttons[0]
+            # for spn in spans:
+            #     button = spn.find_element_by_xpath('..')
+            #     div = button.find_element_by_xpath('..')
+            #     if 'like' in div.text.lower():
+            #         like_button = button
 
             if like_button:
                 like_button.click()
@@ -606,6 +620,7 @@ class InstagramBot:
                         time.sleep(10)
                         err = self.check_if_blocked()
                         if err:
+                            self.close_post()
                             yield False, err
                             return
 
@@ -644,7 +659,7 @@ class InstagramBot:
                 textarea.send_keys(Keys.SPACE)
                 time.sleep(0.5)
 
-                button = form.find_element_by_css_selector('button')
+                button = form.find_element_by_css_selector('button[type="submit"]')
                 button.click()
                 success = True
                 err = None
@@ -794,8 +809,9 @@ class InstagramBot:
     def close_post(self):
         try:
             close_buttons = self.webdriver.find_elements_by_css_selector('svg[aria-label="Close"]')
-            if len(close_buttons) == 1:
+            while len(close_buttons) > 0:
                 close_buttons[0].click()
+                close_buttons = self.webdriver.find_elements_by_css_selector('svg[aria-label="Close"]')
         except:
             pass
 

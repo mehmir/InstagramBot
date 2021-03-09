@@ -40,6 +40,8 @@ class BaseRepository:
     def get(self, **kwargs):
         try:
             with self.session_scope() as session:
+                if hasattr(self.db_object, 'IsDeleted'):
+                    kwargs['IsDeleted'] = False
                 query = session.query(self.db_object).filter_by(**kwargs)
                 return query.one_or_none(), None
         except SQLAlchemyError as e:

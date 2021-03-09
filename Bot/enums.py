@@ -31,6 +31,7 @@ class BotErrors(enum.Enum):
     InstaTempLocked = 10
     User_Incorrect = 11
     Couldnt_Connet_Insta = 12
+    InstaRestricted = 13
 
 
 class PostTypes(enum.Enum):
@@ -79,6 +80,7 @@ class WeekDay(enum.IntFlag):
 
 
 class WorkPageStatus(enum.Enum):
+    WaitingForPassword = 0
     Verified = 1
     WrongUsername = 2
     WrongPassword = 3

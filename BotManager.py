@@ -28,7 +28,7 @@ class BotManager:
             self.username = work_page.Username
             aes = EncryptionTools.AESCipher()
             self.password = aes.decrypt(work_page.Password)
-            self.password = '773866!!'
+            # self.password = '773866!!'
             self.run_schedule = RunSchedule.RunSchedule(work_page)
         self.setting = None
         self.load_settings()
@@ -58,7 +58,7 @@ class BotManager:
                     # wait_seconds = next_run.total_seconds()
                     self.is_running = False
                     self.bot.close()
-                    print('bot sleep until {}'.format(next_run.time()))
+                    print(BotManager.time_now_str(), 'bot sleep until {}'.format(next_run.time()))
                     time.sleep(wait_seconds)
                     break
 
@@ -69,7 +69,8 @@ class BotManager:
             # self.like_and_follow_likers()
             #
             min_wait = self.get_sleep_time(self.bot_actions) - int(time.time())
-            wait_time = max(10, min_wait)
+            wait_time = max(0, min_wait)
+            print(BotManager.time_now_str(), 'bot is sleep for', wait_time, 'seconds')
             time.sleep(wait_time)
 
     def initialize_bot(self):
@@ -84,14 +85,14 @@ class BotManager:
             self.bot_temp.close()
             del self.bot_temp
             if not success:
-                print('bot is closed.\nError:', err)
+                print(BotManager.time_now_str(), 'bot is closed.\nError:', err)
                 return False
 
         self.bot = InstagramBot(self.username, self.password, self.hide_browser, proxy=proxy)
 
         success, err = self.bot.open()
         if not success:
-            print('bot is closed.\nError:', err)
+            print(BotManager.time_now_str(), 'bot is closed.\nError:', err)
             return False
 
         self.bot.create_tabs()
@@ -126,7 +127,7 @@ class BotManager:
                 self.bot.close_tab(Tabs.GetFollowers)
 
         except Exception as e:
-            print(e)
+            print(BotManager.time_now_str(), e)
 
     def follow_action(self):
         if self.setting.EnableFollow:
@@ -136,22 +137,23 @@ class BotManager:
                 self.bot.open_tab(Tabs.Follow)
             try:
                 run_count = self.bot_actions.Follow.run_count()
-                print('follow count:', run_count)
+                print(BotManager.time_now_str(), 'follow count:', run_count)
                 for i in range(run_count):
                     if self.limit_manager.can_do_action(Actions.Follow):
                         user, error = self.bot_actions.Follow.next()
                         if user is not None and error is None:
-                            print(f'{self.get_date_time(time.time())}:', user.username, 'is Followed')
+                            print(BotManager.time_now_str(), user.username, 'is Followed')
                             self.limit_manager.set_action_count(Actions.Follow, 1)
                         if error == BotErrors.InstaBlock or error == BotErrors.InstaTry:
+                            print(BotManager.time_now_str(), 'blocked by insta,', error)
                             self.bot_actions.Follow.set_action(self.follow_form_tagets(), is_blocked=True)
                             break
                     else:
                         self.bot_actions.Follow.set_next_run(minute=15)
                         hour, day = self.limit_manager.get_action_count(Actions.Follow)
-                        print(f'cannot follow, hour_count: {hour}, day_count: {day}')
+                        print(BotManager.time_now_str(), f'cannot follow, hour_count: {hour}, day_count: {day}')
                         break
-                print('follow nex run:', self.get_date_time(self.bot_actions.Follow.next_run))
+                print(BotManager.time_now_str(), 'follow nex run:', BotManager.get_date_time(self.bot_actions.Follow.next_run))
             except StopIteration:
                 self.bot_actions.Follow.set_action(self.follow_form_tagets())
         else:
@@ -165,22 +167,22 @@ class BotManager:
                 self.bot.open_tab(Tabs.Unfollow)
             try:
                 run_count = self.bot_actions.Unfollow.run_count()
-                print('unfollow count:', run_count)
+                print(BotManager.time_now_str(), 'unfollow count:', run_count)
                 for i in range(run_count):
                     if self.limit_manager.can_do_action(Actions.UnFollow):
                         user, error = self.bot_actions.Unfollow.next()
                         if user is not None and error is None:
-                            print(f'{self.get_date_time(time.time())}:', user, 'is Unfollowed')
+                            print(BotManager.time_now_str(), user, 'is Unfollowed')
                         elif error == BotErrors.InstaTry or error == BotErrors.InstaBlock or error == BotErrors.InstaNotLoadList:
-                            print(f'{int(time.time())}:', error)
+                            print(BotManager.time_now_str(), error)
                             self.bot_actions.Unfollow.set_action(self.unfollow(), True)
                             break
                     else:
                         self.bot_actions.Unfollow.set_next_run(minute=15)
                         hour, day = self.limit_manager.get_action_count(Actions.UnFollow)
-                        print(f'cannot unfollow, hour_count: {hour}, day_count: {day}')
+                        print(BotManager.time_now_str(), f'cannot unfollow, hour_count: {hour}, day_count: {day}')
                         break
-                print('unfollow nex run:', self.get_date_time(self.bot_actions.Unfollow.next_run))
+                print(BotManager.time_now_str(), 'unfollow nex run:', BotManager.get_date_time(self.bot_actions.Unfollow.next_run))
             except StopIteration:
                 self.bot_actions.Unfollow.set_action(self.unfollow())
         else:
@@ -194,7 +196,7 @@ class BotManager:
                 self.bot.open_tab(Tabs.Comment)
             try:
                 run_count = self.bot_actions.Comment.run_count()
-                print('comment count:', run_count)
+                print(BotManager.time_now_str(), 'comment count:', run_count)
                 for i in range(run_count):
                     if self.limit_manager.can_do_action(Actions.LikeComment):
                         user_comments, error = self.bot_actions.Comment.next()
@@ -206,23 +208,24 @@ class BotManager:
                                 user_count += 1
                                 if like:
                                     like_count += 1
-                        print(f'{self.get_date_time(time.time())}:', user_count, ' comments retrieved and', like_count,
+                        print(BotManager.time_now_str(), user_count, ' comments retrieved and', like_count,
                               'is liked')
                         self.limit_manager.set_action_count(Actions.LikeComment, like_count)
                         if error == BotErrors.InstaTry or error == BotErrors.InstaBlock:
                             self.limit_manager.set_action_time(Actions.LikeComment, config.wait_for_already_block)
+                            print(BotManager.time_now_str(), 'blocked by insta,', error)
                     else:
                         self.bot_actions.Comment.set_next_run(minute=15)
                         hour, day = self.limit_manager.get_action_count(Actions.LikeComment)
-                        print(f'cannot like comment, hour_count: {hour}, day_count: {day}')
+                        print(BotManager.time_now_str(), f'cannot like comment, hour_count: {hour}, day_count: {day}')
                         break
-                print('comment nex run:', self.get_date_time(self.bot_actions.Comment.next_run))
+                print(BotManager.time_now_str(), 'comment nex run:', BotManager.get_date_time(self.bot_actions.Comment.next_run))
 
             except StopIteration:
                 self.bot_actions.Comment.set_action(self.commenter_and_like_comments())
             except Exception as e:
                 self.bot_actions.Comment.set_action(self.commenter_and_like_comments())
-                print('error in comment')
+                print(BotManager.time_now_str(), 'error in comment:', e)
         else:
             self.bot.close_tab(Tabs.Comment)
 
@@ -234,23 +237,24 @@ class BotManager:
                 self.bot.open_tab(Tabs.FollowLikers)
             try:
                 run_count = self.bot_actions.FollowLikers.run_count()
-                print('followLikers count:', run_count)
+                print(BotManager.time_now_str(), 'followLikers count:', run_count)
                 for i in range(run_count):
-                    if self.limit_manager.can_do_action(Actions.Follow):
+                    if self.limit_manager.can_do_action(Actions.Follow) or self.limit_manager.can_do_action(Actions.LikePost):
                         user, error = self.bot_actions.FollowLikers.next()
                         if user is not None and error is None:
-                            print(f'{self.get_date_time(time.time())}:', user.username, 'is Followed,       next:',
-                                  self.get_date_time(self.bot_actions.Follow.next_run))
+                            print(BotManager.time_now_str(), user.username, 'is Followed,       next:',
+                                  BotManager.get_date_time(self.bot_actions.Follow.next_run))
                             self.limit_manager.set_action_count(Actions.Follow, 1)
                         if error == BotErrors.InstaBlock or error == BotErrors.InstaTry:
                             self.bot_actions.FollowLikers.set_action(self.like_and_follow_likers(), is_blocked=True)
+                            print(BotManager.time_now_str(), 'blocked by insta,', error)
                             break
                     else:
                         self.bot_actions.FollowLikers.set_next_run(minute=15)
                         hour, day = self.limit_manager.get_action_count(Actions.Follow)
-                        print(f'cannot unfollow, hour_count: {hour}, day_count: {day}')
+                        print(BotManager.time_now_str(), f'cannot unfollow, hour_count: {hour}, day_count: {day}')
                         break
-                print('follow likers nex run:', self.get_date_time(self.bot_actions.FollowLikers.next_run))
+                print(BotManager.time_now_str(), 'follow likers nex run:', BotManager.get_date_time(self.bot_actions.FollowLikers.next_run))
 
             except StopIteration:
                 self.bot_actions.FollowLikers.set_action(self.like_and_follow_likers())
@@ -282,23 +286,31 @@ class BotManager:
         random.shuffle(targets)
         for target in targets:
             posts, errorr = self.bot.get_posts(target, self.setting.MaxLikeOldPostsPerPage)
-            for _, post in posts.items():
-                is_open = self.bot.open_post(post)
-                if is_open:
-                    if self.limit_manager.can_do_action(Actions.LikePost) and self.setting.EnableLikePosts:
-                        is_like, err = self.bot.like_post(close_after=False)
-                        if is_like:
-                            self.limit_manager.set_action_count(Actions.LikePost, 1)
-                            repository = repositories.ActionLogRepository()
-                            log = repository.get_action_log(self.workPage,Actions.LikePost, reference=post.post_id)
-                            repository.add(log)
-                            print('post ', post.post_id, 'is liked')
-                if post.type != PostTypes.Video and self.setting.EnableFollow:
-                    for user, err in self.bot.follow_post_likers(self.setting.MaxFollowPerPage):
-                        if user:
-                            repository = repositories.WorkPageInstaUserRepository()
-                            repository.add_follow(user, self.username, target)
-                        yield user, err
+            if posts:
+                for _, post in posts.items():
+                    is_open = self.bot.open_post(post)
+                    if is_open:
+                        if self.limit_manager.can_do_action(Actions.LikePost) and self.setting.EnableLikePosts:
+                            is_like, err = self.bot.like_post(close_after=False)
+                            if is_like:
+                                self.limit_manager.set_action_count(Actions.LikePost, 1)
+                                repository = repositories.ActionLogRepository()
+                                log = repository.get_action_log(self.workPage,Actions.LikePost, reference=post.post_id)
+                                repository.add(log)
+                                print(BotManager.time_now_str(), 'post ', post.post_id, 'is liked')
+                        if post.type != PostTypes.Video and self.setting.EnableFollow and self.limit_manager.can_do_action(Actions.Follow):
+                            if self.setting.MaxFollowPerPage:
+                                for user, err in self.bot.follow_post_likers(self.setting.MaxFollowPerPage):
+                                    if user:
+                                        repository = repositories.WorkPageInstaUserRepository()
+                                        repository.add_follow(user, self.username, target)
+                                    yield user, err
+                                    if not self.limit_manager.can_do_action(Actions.Follow):
+                                        break
+
+
+            else:
+                print(BotManager.time_now_str(), 'error in getting target posts:', errorr)
 
     def commenter_and_like_comments(self):
         targets = self.get_target_pages()
@@ -311,18 +323,19 @@ class BotManager:
                     is_open = self.bot.open_post(post)
                     if is_open:
                         comments = wp_tp_cmt_repository.get_comments(self.username, target)
-                        random.shuffle(comments)
-                        cm = comments[0]
                         now = int(time.time())
-                        post_comments_count = self.get_comment_count(post.post_id)
-                        if now > self.limit_manager.get_action_time(Actions.CommentPost) and self.limit_manager.can_do_action(Actions.CommentPost) and self.setting.EnableComments and post_comments_count < self.setting.MaxCommentPerPost:
-                            is_commented, err = self.bot.comment_post(cm.ContentText, False)
-                            if is_commented:
-                                print('comment on post (' + str(post.post_id) + ') :', cm.ContentText)
-                                self.limit_manager.set_action_count(Actions.CommentPost, 1)
-                                self.set_log(self.username, Actions.CommentPost, content_id=cm.CommentId, reference=post.post_id)
-                            elif err == BotErrors.InstaCommentBlocked:
-                                self.limit_manager.set_action_time(Actions.CommentPost, config.wait_for_block)
+                        if comments:
+                            random.shuffle(comments)
+                            cm = comments[0]
+                            post_comments_count = self.get_comment_count(post.post_id)
+                            if now > self.limit_manager.get_action_time(Actions.CommentPost) and self.limit_manager.can_do_action(Actions.CommentPost) and self.setting.EnableComments and post_comments_count < self.setting.MaxCommentPerPost:
+                                is_commented, err = self.bot.comment_post(cm.ContentText, False)
+                                if is_commented:
+                                    print(BotManager.time_now_str(), 'comment on post (' + str(post.post_id) + ') :', cm.ContentText)
+                                    self.limit_manager.set_action_count(Actions.CommentPost, 1)
+                                    self.set_log(self.username, Actions.CommentPost, content_id=cm.CommentId, reference=post.post_id)
+                                elif err == BotErrors.InstaCommentBlocked:
+                                    self.limit_manager.set_action_time(Actions.CommentPost, config.wait_for_block)
 
                         like_chance = config.like_comments_chance
                         like_count = self.get_commentLike_count(post.post_id)
@@ -343,9 +356,14 @@ class BotManager:
         min_wait = min(next_runs)
         return min_wait
 
-    def get_date_time(self, time):
+    @staticmethod
+    def get_date_time(time):
         dtime = datetime.fromtimestamp(int(time))
         return dtime
+
+    @staticmethod
+    def time_now_str():
+        return f'{BotManager.get_date_time(time.time())}:'
 
     def get_target_pages(self):
         repository = repositories.VWorkpageTargetpageRepository()
@@ -388,7 +406,8 @@ class BotManager:
         p = Proxy(proxy.Address, proxy.Port, proxy.Username, proxy.Password)
         return p
 
-    def fetch_proxies(self):
+    @staticmethod
+    def fetch_proxies():
         repository = repositories.ProxyRepository()
         results = requests.get("https://proxy.webshare.io/api/proxy/list/", headers={"Authorization": "Token ba7861bcafcfb854c7717a500fccd0144ddcb0a8"}).json()['results']
         proxy_list = []
@@ -426,6 +445,9 @@ if __name__ == '__main__':
 
     if not error:
         manager = BotManager(wp, hide_browser)
-        manager.fetch_proxies()
-        # manager.fetch_proxies()
+        # BotManager.fetch_proxies()
+        # # manager.fetch_proxies()
         manager.start()
+        a=1
+    else:
+        print(BotManager.time_now_str(),error)

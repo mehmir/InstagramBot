@@ -19,6 +19,7 @@ class TargetPageRepository(BaseRepository):
                 'FollowingCount': page_info.following,
                 'PostCount': page_info.post_count,
                 'FullName': page_info.full_name,
+                'UpdateInfoStatus': 2
             }
             with self.session_scope(commit_needed=True) as session:
                 session.query(TargetPage).filter_by(Username=page_info.username).update(update_info)

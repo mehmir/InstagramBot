@@ -52,6 +52,7 @@ class TargetPage(Base):
     PostCount = Column(Integer)
     FullName = Column(String)
     IsDeleted = Column(BIT)
+    UpdateInfoStatus = Column(Integer)
 
 
 class VWorkPageTargetPage(Base):
@@ -84,6 +85,7 @@ class WorkPage(Base):
     InstagramId = Column(BIGINT)
     IsDeleted = Column(BIT)
     Status = Column(IntEnum(WorkPageStatus))
+    UpdateInfoStatus = Column(Integer)
     # Status = Column(Integer)
 
 

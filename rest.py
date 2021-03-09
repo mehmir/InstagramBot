@@ -20,6 +20,11 @@ def target_page_update():
     BotService.update_page_info(insta_user)
     return "<h1>"+insta_user+"</h1><p>Page info updated.</p>"
 
+@app.route('/workpage/update', methods=['GET'])
+def work_page_update():
+    insta_user = flask.request.args.get('page')
+    BotService.update_page_info(insta_user, is_work_page=True)
+    return "<h1>"+insta_user+"</h1><p>Page info updated.</p>"
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port="5000")

@@ -40,17 +40,22 @@ class BotService:
                     print('Error: some errors occurred:', err)
                     workpage_status = WorkPageStatus.Unknown
 
-                bot.close()
+                page_info = None
                 if is_login:
                     workpage_status = WorkPageStatus.Verified
+                    page_info, err = bot.get_page_info(username)
+                    if not page_info:
+                        print('login is successful for', username, 'but workpage info cannot be updated for this error:', err)
+
+                bot.close()
 
                 repository = repositories.WorkPageRepository()
-                repository.update_status(username, workpage_status)
+                repository.update(username, workpage_status, page_info)
         except Exception:
             print(Exception)
 
     @staticmethod
-    def update_page_info(page_username):
+    def update_page_info(page_username, is_work_page=False):
         repository = repositories.WorkPageRepository()
         workpages, error = repository.get_admin_workpages()
 
@@ -68,8 +73,12 @@ class BotService:
                 if is_open:
                     page_info, err = bot.get_page_info(page_username)
                     if page_info:
-                        tp_repository = repositories.TargetPageRepository()
-                        tp_repository.update_target_page_info(page_info)
+                        if is_work_page:
+                            wp_repository = repositories.WorkPageRepository()
+                            wp_repository.update(page_username, status=None, page_info=page_info)
+                        else:
+                            tp_repository = repositories.TargetPageRepository()
+                            tp_repository.update_target_page_info(page_info)
                         break
                     else:
                         print(err)
