@@ -306,7 +306,6 @@ class BotManager:
                                         repository.add_follow(user, self.username, target)
                                     yield user, err
                                     if not self.limit_manager.can_do_action(Actions.Follow):
-                                        a=1
                                         break
 
 
